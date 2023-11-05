@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AWS Config Rules to notify if any Lambda Functions do not use the shared ENI
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 256
+
+Parameters:
+  EmailAddress:
+    Type: String
+    Description: Email address to receive notifications
+
+Resources:
+  CheckLambdaSharedEni:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: check-lambda-shared-eni
+      CodeUri: checkLambdaSharedEni/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Role: !GetAtt CheckLambdaSharedEniExecutionRole.Arn
+      Policies:
+        - AWSLambdaExecute
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - config:PutEvaluations
+                - config:GetComplianceDetailsByConfigRule
+              Resource: '*'
+
+  CheckLambdaSharedEniExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+            Action: ['sts:AssumeRole']
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  [
+                    logs:*,
+                    config:PutEvaluations,
+                    config:GetComplianceDetailsByConfigRule,
+                  ]
+                Resource: '*'
+
+  ConfigPermissionToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt CheckLambdaSharedEni.Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: 'config.amazonaws.com'
+      SourceAccount: !Ref 'AWS::AccountId'
+
+  LambdaSharedEniConfigRule:
+    Type: AWS::Config::ConfigRule
+    Properties:
+      ConfigRuleName: lambda-shared-eni-check
+      Scope:
+        ComplianceResourceTypes:
+          - AWS::Lambda::Function
+      Source:
+        Owner: CUSTOM_LAMBDA
+        SourceDetails:
+          - EventSource: aws.config
+            MessageType: ConfigurationItemChangeNotification
+        SourceIdentifier: !GetAtt CheckLambdaSharedEni.Arn
+    DependsOn: ConfigPermissionToInvokeLambda
+
+  ConfigEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: detect-config-non-compliant-changes
+      Description: A CloudWatch Event Rule that detects changes to AWS Config that are not compliant
+      State: ENABLED
+      Targets:
+        - Arn: !Ref SnsTopicEventRule
+          Id: target-id1
+      EventPattern:
+        source:
+          - aws.config
+        detail-type:
+          - Config Rules Compliance Change
+        detail:
+          newEvaluationResult:
+            complianceType:
+              - NON_COMPLIANT
+
+  SnsTopicEventRule:
+    Type: AWS::SNS::Topic
+    Properties:
+      Subscription:
+        - Endpoint: !Ref EmailAddress
+          Protocol: email
+      TopicName: event-rule-action
+
+  SnsTopicPolicyEventRule:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Sid: __default_statement_ID
+            Effect: Allow
+            Principal:
+              AWS: '*'
+            Action:
+              - SNS:GetTopicAttributes
+              - SNS:SetTopicAttributes
+              - SNS:AddPermission
+              - SNS:RemovePermission
+              - SNS:DeleteTopic
+              - SNS:Subscribe
+              - SNS:ListSubscriptionsByTopic
+              - SNS:Publish
+              - SNS:Receive
+            Resource: !Ref SnsTopicEventRule
+            Condition:
+              StringEquals:
+                AWS:SourceOwner: !Ref AWS::AccountId
+          - Sid: TrustCWEToPublishEventsToMyTopic
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref SnsTopicEventRule
+      Topics:
+        - !Ref SnsTopicEventRule
