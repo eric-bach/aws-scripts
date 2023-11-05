@@ -1,0 +1,18 @@
+{
+  "configurations": [
+    {
+      "type": "aws-sam",
+      "request": "direct-invoke",
+      "name": "lambda-shared-eni:CheckLambdaSharedEni",
+      "invokeTarget": {
+        "target": "template",
+        "templatePath": "${workspaceFolder}/lambda-shared-eni/template.yaml",
+        "logicalId": "CheckLambdaSharedEni"
+      },
+      "lambda": {
+        "payload": {},
+        "environmentVariables": {}
+      }
+    }
+  ]
+}

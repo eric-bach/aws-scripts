@@ -88,7 +88,7 @@ Resources:
       Description: A CloudWatch Event Rule that detects changes to AWS Config that are not compliant
       State: ENABLED
       Targets:
-        - Arn: !Ref SnsTopicEventRule
+        - Arn: !GetAtt FormatEventMessage.Arn
           Id: target-id1
       EventPattern:
         source:
@@ -99,6 +99,34 @@ Resources:
           newEvaluationResult:
             complianceType:
               - NON_COMPLIANT
+
+  FormatEventMessage:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: format-event-message
+      CodeUri: formatEventMessage/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN: !Ref SnsTopicEventRule
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - SNS:Publish
+              Resource: !Ref SnsTopicEventRule
+
+  EventBridgePermissionToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt FormatEventMessage.Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt ConfigEventRule.Arn
 
   SnsTopicEventRule:
     Type: AWS::SNS::Topic
@@ -127,7 +155,7 @@ Resources:
               - SNS:ListSubscriptionsByTopic
               - SNS:Publish
               - SNS:Receive
-            Resource: !Ref SnsTopicEventRule
+            Resource: !Ref FormatEventMessage
             Condition:
               StringEquals:
                 AWS:SourceOwner: !Ref AWS::AccountId

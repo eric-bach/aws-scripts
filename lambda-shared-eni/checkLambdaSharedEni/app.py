@@ -5,11 +5,16 @@ import json
 def evaluate_compliance(configuration_item):
     # Your custom compliance evaluation logic goes here
     # Example: Check if a Lambda function has a specific tag
-    compliance_status = "NON_COMPLIANT"
-
+    if "tags" in configuration_item and "application" in configuration_item["tags"]:
+        compliance_status = "COMPLIANT"
+    else:
+        compliance_status = "NON_COMPLIANT"
+    
     return compliance_status
 
 def lambda_handler(event, context):
+    print("Event Received:", event)
+
     invoking_event = json.loads(event['invokingEvent'])
     configuration_item = invoking_event.get('configurationItem')
 
@@ -20,7 +25,7 @@ def lambda_handler(event, context):
 
     # Report compliance status back to AWS Config
     config = boto3.client('config')
-    config.put_evaluations(
+    result = config.put_evaluations(
         Evaluations=[
             {
                 'ComplianceResourceType': configuration_item['resourceType'],
@@ -33,6 +38,7 @@ def lambda_handler(event, context):
         ResultToken=event['resultToken']
     )
 
+    print('Config Result: ', result)
     print('ResourceId: ', configuration_item['resourceId'])
     print('ComplianceStatus: ', compliance_status)
 
