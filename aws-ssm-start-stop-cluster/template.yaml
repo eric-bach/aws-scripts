@@ -1,0 +1,340 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Stops Amazon Aurora Clusters with a Specific Tag at 6pm MDT (0am UTC) everyday and Starts them at 8am MDT (2pm UTC) on Weekdays.
+
+Parameters:
+  TagKey:
+    Type: String
+    Default: env
+    Description: The tag key to filter Aurora DB clusters.
+  TagValue:
+    Type: String
+    Default: ericbach
+    Description: The tag value to match for the specified tag key.
+
+Resources:
+  SsmAutomationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ama-ssm-automation
+      Description: Role to run SSM Automation tasks
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ssm.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMFullAccess
+
+  AuroraClusterPermissions:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: AuroraClusterPermissions
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - rds:Describe*
+              - rds:Start*
+              - rds:Stop*
+              - rds:Reboot*
+              - rds:ListTags*
+            Resource: '*'
+      Roles:
+        - !Ref SsmAutomationRole
+
+  StopAuroraClustersAssociation:
+    Type: AWS::SSM::Association
+    Properties:
+      ApplyOnlyAtCronInterval: false
+      AssociationName: StopAuroraClusters
+      AutomationTargetParameterName: InstanceId
+      Name: AMA-StartStopAuroraClusterWithTags
+      Parameters:
+        Action:
+          - Stop
+        TagKey:
+          - !Ref TagKey
+        TagValue:
+          - !Ref TagValue
+        AutomationAssumeRole:
+          - !GetAtt SsmAutomationRole.Arn
+      ScheduleExpression: cron(00 0 * * ? *)
+      Targets:
+        - Key: aws:NoOpAutomationTag
+          Values:
+            - AWS-NoOpAutomationTarget-Value
+
+  # SSM doesn't support MON-FRI cron expression so we need to create a separate association for each day
+  StartAuroraClustersAssociationMonday:
+    Type: AWS::SSM::Association
+    Properties:
+      ApplyOnlyAtCronInterval: false
+      AssociationName: StartAuroraClustersMonday
+      AutomationTargetParameterName: InstanceId
+      Name: AMA-StartStopAuroraClusterWithTags
+      Parameters:
+        Action:
+          - Start
+        TagKey:
+          - !Ref TagKey
+        TagValue:
+          - !Ref TagValue
+        AutomationAssumeRole:
+          - !GetAtt SsmAutomationRole.Arn
+      ScheduleExpression: cron(00 14 ? * 1,2,3,4,5 *)
+      Targets:
+        - Key: aws:NoOpAutomationTag
+          Values:
+            - AWS-NoOpAutomationTarget-Value
+  StartAuroraClustersAssociationMonday:
+    Type: AWS::SSM::Association
+    Properties:
+      ApplyOnlyAtCronInterval: false
+      AssociationName: StartAuroraClustersMonday
+      AutomationTargetParameterName: InstanceId
+      Name: AMA-StartStopAuroraClusterWithTags
+      Parameters:
+        Action:
+          - Start
+        TagKey:
+          - !Ref TagKey
+        TagValue:
+          - !Ref TagValue
+        AutomationAssumeRole:
+          - !GetAtt SsmAutomationRole.Arn
+      ScheduleExpression: cron(00 14 ? * MON *)
+      Targets:
+        - Key: aws:NoOpAutomationTag
+          Values:
+            - AWS-NoOpAutomationTarget-Value
+  StartAuroraClustersAssociationTuesday:
+    Type: AWS::SSM::Association
+    Properties:
+      ApplyOnlyAtCronInterval: false
+      AssociationName: StartAuroraClustersTuesday
+      AutomationTargetParameterName: InstanceId
+      Name: AMA-StartStopAuroraClusterWithTags
+      Parameters:
+        Action:
+          - Start
+        TagKey:
+          - !Ref TagKey
+        TagValue:
+          - !Ref TagValue
+        AutomationAssumeRole:
+          - !GetAtt SsmAutomationRole.Arn
+      ScheduleExpression: cron(00 14 ? * TUE *)
+      Targets:
+        - Key: aws:NoOpAutomationTag
+          Values:
+            - AWS-NoOpAutomationTarget-Value
+  StartAuroraClustersAssociationWednesday:
+    Type: AWS::SSM::Association
+    Properties:
+      ApplyOnlyAtCronInterval: false
+      AssociationName: StartAuroraClustersWednesday
+      AutomationTargetParameterName: InstanceId
+      Name: AMA-StartStopAuroraClusterWithTags
+      Parameters:
+        Action:
+          - Start
+        TagKey:
+          - !Ref TagKey
+        TagValue:
+          - !Ref TagValue
+        AutomationAssumeRole:
+          - !GetAtt SsmAutomationRole.Arn
+      ScheduleExpression: cron(00 14 ? * WED *)
+      Targets:
+        - Key: aws:NoOpAutomationTag
+          Values:
+            - AWS-NoOpAutomationTarget-Value
+  StartAuroraClustersAssociationThursady:
+    Type: AWS::SSM::Association
+    Properties:
+      ApplyOnlyAtCronInterval: false
+      AssociationName: StartAuroraClustersThursday
+      AutomationTargetParameterName: InstanceId
+      Name: AMA-StartStopAuroraClusterWithTags
+      Parameters:
+        Action:
+          - Start
+        TagKey:
+          - !Ref TagKey
+        TagValue:
+          - !Ref TagValue
+        AutomationAssumeRole:
+          - !GetAtt SsmAutomationRole.Arn
+      ScheduleExpression: cron(00 14 ? * THU *)
+      Targets:
+        - Key: aws:NoOpAutomationTag
+          Values:
+            - AWS-NoOpAutomationTarget-Value
+  StartAuroraClustersAssociationFriday:
+    Type: AWS::SSM::Association
+    Properties:
+      ApplyOnlyAtCronInterval: false
+      AssociationName: StartAuroraClustersFriday
+      AutomationTargetParameterName: InstanceId
+      Name: AMA-StartStopAuroraClusterWithTags
+      Parameters:
+        Action:
+          - Start
+        TagKey:
+          - !Ref TagKey
+        TagValue:
+          - !Ref TagValue
+        AutomationAssumeRole:
+          - !GetAtt SsmAutomationRole.Arn
+      ScheduleExpression: cron(00 14 ? * FRI *)
+      Targets:
+        - Key: aws:NoOpAutomationTag
+          Values:
+            - AWS-NoOpAutomationTarget-Value
+
+  StartStopAuroraClusterAutomationDocument:
+    Type: AWS::SSM::Document
+    Properties:
+      DocumentType: Automation
+      Name: AMA-StartStopAuroraClusterWithTags
+      DocumentFormat: YAML
+      Content:
+        schemaVersion: '0.3'
+        description: |
+          ### Document Name AMA-StartStopAuroraClusterWithTags
+
+          ## What does this document do?
+          This document finds and starts or stops Amazon Aurora DB clusters based on specific tag key and value.
+        assumeRole: '{{AutomationAssumeRole}}'
+        outputs:
+          - StartStopAuroraCluster.ClustersProcessed
+          - StartStopAuroraCluster.ClustersStartedOrStopped
+        parameters:
+          Action:
+            type: String
+            description: (Required) The action to take on the clusters.
+            default: Start
+            allowedValues:
+              - Start
+              - Stop
+          TagKey:
+            type: String
+            description: (Required) The tag key to filter Aurora DB clusters.
+          TagValue:
+            type: String
+            description: (Required) The tag value to match for the specified tag key.
+          AutomationAssumeRole:
+            type: String
+            description: (Required) The ARN of the role that allows Automation to perform the actions on your behalf.
+            allowedPattern: '^arn:aws(-cn|-us-gov)?:iam::\d{12}:role\/[\w+=,.@_\/-]+|^$'
+        mainSteps:
+          - name: StartStopAuroraCluster
+            action: 'aws:executeScript'
+            onFailure: Abort
+            isCritical: true
+            isEnd: true
+            timeoutSeconds: 600
+            description: |
+              ## StartStopAuroraCluster
+              Finds and starts or stops Amazon Aurora DB clusters based on specific tag key and value.
+            inputs:
+              Runtime: python3.7
+              Handler: start_stop_aurora_cluster_handler
+              InputPayload:
+                Action: '{{Action}}'
+                TagKey: '{{TagKey}}'
+                TagValue: '{{TagValue}}'
+                AutomationAssumeRole: '{{AutomationAssumeRole}}'
+              Script: |
+                import time
+                import boto3
+
+                rds_client = boto3.client('rds')
+
+                START = "Start"
+                STOP = "Stop"
+                DB_AVAILABLE = "available"
+                DB_STARTING = "starting"
+                DB_STOPPED = "stopped"
+                DB_STOPPING = "stopping"
+
+                def start_cluster(cluster_name):
+                    response = rds_client.start_db_cluster(DBClusterIdentifier=cluster_name)
+                    time.sleep(1)
+                    response = rds_client.describe_db_clusters(DBClusterIdentifier=cluster_name)
+                    return response.get("DBClusters")[0].get('Status')
+
+                def stop_cluster(cluster_name):
+                    response = rds_client.stop_db_cluster(DBClusterIdentifier=cluster_name)
+                    time.sleep(1)
+                    response = rds_client.describe_db_clusters(DBClusterIdentifier=cluster_name)
+                    return response.get("DBClusters")[0].get('Status')
+
+                def start_stop_aurora_cluster_handler(event, context):
+                    action = event.get("Action")
+                    tag_key = event.get("TagKey")
+                    tag_value = event.get("TagValue")
+
+                    out = {
+                        "StartStopAuroraCluster.ClustersProcessed": 0,
+                        "StartStopAuroraCluster.ClustersStartedOrStopped": 0
+                    }
+
+                    # Get a list of all Aurora clusters
+                    clusters = rds_client.describe_db_clusters()['DBClusters']
+
+                    for cluster in clusters:
+                        cluster_name = cluster['DBClusterIdentifier']
+
+                        # Check if the cluster has the specified tag
+                        tags = rds_client.list_tags_for_resource(ResourceName=cluster['DBClusterArn'])
+                        cluster_tags = {tag['Key']: tag['Value'] for tag in tags['TagList']}
+                        engine_mode = cluster['EngineMode']
+
+                        if not engine_mode:
+                          raise Exception("Aurora cluster '{}' not found.".format(cluster_name))
+
+                        if engine_mode.lower() == 'provisioned' and tag_key in cluster_tags and cluster_tags[tag_key] == tag_value:
+                            out["StartStopAuroraCluster.ClustersProcessed"] += 1
+
+                            # Start or stop the cluster based on the action
+                            if action.lower() == START.lower():
+                                
+                                if cluster['Status'] in [DB_STARTING, DB_AVAILABLE]:
+                                    # Cluster is already in a valid state
+                                    continue
+                                
+                                elif cluster['Status'].lower() != DB_STOPPED:
+                                    # Cluster is not in a valid state to be started
+                                    continue
+                                
+                                start_cluster(cluster_name)
+                                out["StartStopAuroraCluster.ClustersStartedOrStopped"] += 1
+
+                            elif action.lower() == STOP.lower():
+                                
+                                if cluster['Status'] in [DB_STOPPED, DB_STOPPING]:
+                                    # Cluster is already in a valid state
+                                    continue
+                                
+                                elif cluster['Status'].lower() != DB_AVAILABLE:
+                                    # Cluster is not in a valid state to be stopped
+                                    continue
+                                
+                                stop_cluster(cluster_name)
+                                out["StartStopAuroraCluster.ClustersStartedOrStopped"] += 1
+                    return out
+            outputs:
+              - Name: ClustersProcessed
+                Selector: $.Payload.ClustersProcessed
+                Type: Integer
+              - Name: ClustersStartedOrStopped
+                Selector: $.Payload.ClustersStartedOrStopped
+                Type: Integer
