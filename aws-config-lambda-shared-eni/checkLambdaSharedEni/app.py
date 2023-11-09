@@ -22,6 +22,8 @@ def evaluate_compliance(configuration_item):
     security_group_id = configuration_item.get("securityGroupIds", [])[0]
     subnet_ids = configuration_item.get("subnetIds", [])
 
+    # TODO Check that this is a developer lambda
+
     if security_group_id in SG_SUBNETS and set(subnet_ids).issubset(SG_SUBNETS[security_group_id]) and len(subnet_ids) == 4:
         compliance_status = "COMPLIANT"
     else:
