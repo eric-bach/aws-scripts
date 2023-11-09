@@ -6,10 +6,7 @@
 
 #### aws-ssm-start-stop-cluster
 
-X Add EventBridge rule with notification on Association execution
-X Test that this works
-
-- Blog/Presentation
 - Create a PR to remove the previous start/stop Lambdas
+- Blog/Presentation
 - Reach out to CloudOps on removing the old Automation scripts
 - Deploy to account
