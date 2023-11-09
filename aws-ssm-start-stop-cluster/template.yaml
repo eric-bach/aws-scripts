@@ -71,12 +71,11 @@ Resources:
           Values:
             - AWS-NoOpAutomationTarget-Value
 
-  # SSM doesn't support MON-FRI cron expression so we need to create a separate association for each day
-  StartAuroraClustersAssociationMonday:
+  StartAuroraClustersAssociation:
     Type: AWS::SSM::Association
     Properties:
       ApplyOnlyAtCronInterval: false
-      AssociationName: StartAuroraClustersMonday
+      AssociationName: StartAuroraClusters
       AutomationTargetParameterName: InstanceId
       Name: AMA-StartStopAuroraClusterWithTags
       Parameters:
@@ -88,112 +87,7 @@ Resources:
           - !Ref TagValue
         AutomationAssumeRole:
           - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(00 14 ? * 1,2,3,4,5 *)
-      Targets:
-        - Key: aws:NoOpAutomationTag
-          Values:
-            - AWS-NoOpAutomationTarget-Value
-  StartAuroraClustersAssociationMonday:
-    Type: AWS::SSM::Association
-    Properties:
-      ApplyOnlyAtCronInterval: false
-      AssociationName: StartAuroraClustersMonday
-      AutomationTargetParameterName: InstanceId
-      Name: AMA-StartStopAuroraClusterWithTags
-      Parameters:
-        Action:
-          - Start
-        TagKey:
-          - !Ref TagKey
-        TagValue:
-          - !Ref TagValue
-        AutomationAssumeRole:
-          - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(00 14 ? * MON *)
-      Targets:
-        - Key: aws:NoOpAutomationTag
-          Values:
-            - AWS-NoOpAutomationTarget-Value
-  StartAuroraClustersAssociationTuesday:
-    Type: AWS::SSM::Association
-    Properties:
-      ApplyOnlyAtCronInterval: false
-      AssociationName: StartAuroraClustersTuesday
-      AutomationTargetParameterName: InstanceId
-      Name: AMA-StartStopAuroraClusterWithTags
-      Parameters:
-        Action:
-          - Start
-        TagKey:
-          - !Ref TagKey
-        TagValue:
-          - !Ref TagValue
-        AutomationAssumeRole:
-          - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(00 14 ? * TUE *)
-      Targets:
-        - Key: aws:NoOpAutomationTag
-          Values:
-            - AWS-NoOpAutomationTarget-Value
-  StartAuroraClustersAssociationWednesday:
-    Type: AWS::SSM::Association
-    Properties:
-      ApplyOnlyAtCronInterval: false
-      AssociationName: StartAuroraClustersWednesday
-      AutomationTargetParameterName: InstanceId
-      Name: AMA-StartStopAuroraClusterWithTags
-      Parameters:
-        Action:
-          - Start
-        TagKey:
-          - !Ref TagKey
-        TagValue:
-          - !Ref TagValue
-        AutomationAssumeRole:
-          - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(00 14 ? * WED *)
-      Targets:
-        - Key: aws:NoOpAutomationTag
-          Values:
-            - AWS-NoOpAutomationTarget-Value
-  StartAuroraClustersAssociationThursady:
-    Type: AWS::SSM::Association
-    Properties:
-      ApplyOnlyAtCronInterval: false
-      AssociationName: StartAuroraClustersThursday
-      AutomationTargetParameterName: InstanceId
-      Name: AMA-StartStopAuroraClusterWithTags
-      Parameters:
-        Action:
-          - Start
-        TagKey:
-          - !Ref TagKey
-        TagValue:
-          - !Ref TagValue
-        AutomationAssumeRole:
-          - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(00 14 ? * THU *)
-      Targets:
-        - Key: aws:NoOpAutomationTag
-          Values:
-            - AWS-NoOpAutomationTarget-Value
-  StartAuroraClustersAssociationFriday:
-    Type: AWS::SSM::Association
-    Properties:
-      ApplyOnlyAtCronInterval: false
-      AssociationName: StartAuroraClustersFriday
-      AutomationTargetParameterName: InstanceId
-      Name: AMA-StartStopAuroraClusterWithTags
-      Parameters:
-        Action:
-          - Start
-        TagKey:
-          - !Ref TagKey
-        TagValue:
-          - !Ref TagValue
-        AutomationAssumeRole:
-          - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(00 14 ? * FRI *)
+      ScheduleExpression: cron(00 14 ? * ? *)
       Targets:
         - Key: aws:NoOpAutomationTag
           Values:
@@ -313,6 +207,10 @@ Resources:
                                 
                                 elif cluster['Status'].lower() != DB_STOPPED:
                                     # Cluster is not in a valid state to be started
+                                    continue
+
+                                if time.strftime("%a") in ["Sun", "Sat"]:
+                                    # Cluster should not be started on weekends
                                     continue
                                 
                                 start_cluster(cluster_name)
