@@ -17,11 +17,14 @@ This creates a AWS State Manager Association that executes a AWS SSM Document to
    ```
 
 3. Edit each of the Start and Stop Associations created in AWS State Manager
-   a. Change the Execution from `Rate control` to `Simple execution`. CloudFormation currently only supports `Rate control`.
-   b. Set the Input parameters
-   AssumeRoleArn: ssm-automation-role
-   Action: Start or Stop (to match the Association)
-   TagKey: (the tag key to use)
-   TagValue: (the tag value to use)
 
-   TBA Screenshot
+   a. Change the Execution from `Rate control` to `Simple execution`. CloudFormation currently only supports `Rate control`
+
+   b. Set the Input parameters
+
+   - **AssumeRoleArn**: ssm-automation-role
+   - **Action**: Start or Stop (to match the Association)
+   - **TagKey**: (the tag key to use)
+   - **TagValue**: (the tag value to use)
+
+   ![State Manager Association](images/StateManager.jpg)
