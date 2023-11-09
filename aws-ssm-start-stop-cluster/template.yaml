@@ -49,6 +49,8 @@ Resources:
       Roles:
         - !Ref SsmAutomationRole
 
+  # CloudFormation only supports an EC2 Instance Id even though the SSM Document doesn't use it
+  # After the Association is created, manually update the target from Rate Control to Simple execution
   StopAuroraClustersAssociation:
     Type: AWS::SSM::Association
     Properties:
@@ -65,7 +67,7 @@ Resources:
           - !Ref TagValue
         AutomationAssumeRole:
           - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(00 0 * * ? *)
+      ScheduleExpression: cron(00 18 * * ? *) #cron(00 0 * * ? *)
       Targets:
         - Key: aws:NoOpAutomationTag
           Values:
@@ -87,7 +89,7 @@ Resources:
           - !Ref TagValue
         AutomationAssumeRole:
           - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(00 14 ? * ? *)
+      ScheduleExpression: cron(00 19 ? * ? *) #cron(00 14 ? * ? *)
       Targets:
         - Key: aws:NoOpAutomationTag
           Values:

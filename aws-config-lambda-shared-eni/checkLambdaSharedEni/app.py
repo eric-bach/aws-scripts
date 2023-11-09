@@ -2,16 +2,27 @@ import datetime
 import boto3
 import json
 
+F1_SG = "sg-0b4baaeedcc5c3dce"
+M2_SG = "sg-01f3059a533b62208"
+EXP_SG = "sg-06bc7733c60f6741e"
+OMN_SG = "sg-06dcd4bc0a4eb5d7c"
+SUBNET_1 = "subnet-0c97477b31b49f8be"
+SUBNET_2 = "subnet-0351248ea92ee561e"
+SUBNET_3 = "subnet-0f3dbaccd2c1fcf36"
+SUBNET_4 = "subnet-0418853079ef7eb8a"
+SG_SUBNETS = {
+    F1_SG: [SUBNET_1, SUBNET_2, SUBNET_3, SUBNET_4],
+    M2_SG: [SUBNET_1, SUBNET_2, SUBNET_3, SUBNET_4],
+    EXP_SG: [SUBNET_1, SUBNET_2, SUBNET_3, SUBNET_4],
+    OMN_SG: [SUBNET_1, SUBNET_2, SUBNET_3, SUBNET_4]
+}
+
 def evaluate_compliance(configuration_item):
-    # Define the desired subnet IDs and security group ID
-    possible_subnet_ids = ["subnet-12345", "subnet-67890"]  # Replace with your desired subnet IDs
-    possible_security_group_ids = ["sg-abcdefg"]  # Replace with your desired security group ID
-    
     # Check if the Lambda function's subnet IDs and security group match the desired values
+    security_group_id = configuration_item.get("securityGroupIds", [])[0]
     subnet_ids = configuration_item.get("subnetIds", [])
-    security_group_ids = configuration_item.get("securityGroupIds", [])
-    
-    if set(subnet_ids).issubset(possible_subnet_ids) and len(subnet_ids) == 4 and set(security_group_ids).issubset(possible_security_group_ids) and len(security_group_ids) == 1:
+
+    if security_group_id in SG_SUBNETS and set(subnet_ids).issubset(SG_SUBNETS[security_group_id]) and len(subnet_ids) == 4:
         compliance_status = "COMPLIANT"
     else:
         compliance_status = "NON_COMPLIANT"

@@ -4,7 +4,7 @@ version = 0.1
 
 [default]
 [default.global.parameters]
-stack_name = "red-light-green-light"
+stack_name = "aws-ssm-start-stop-cluster"
 
 [default.build.parameters]
 cached = true
