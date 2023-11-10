@@ -253,6 +253,9 @@ Resources:
           - aws.ssm
         detail-type:
           - EC2 Automation Execution Status-change Notification
+        detail:
+          Definition:
+            - AMA-StartStopAuroraClusterWithTags
 
   SnsTopicEventRule:
     Type: AWS::SNS::Topic

@@ -1,0 +1,23 @@
+{
+  "version": "0",
+  "id": "50e5d06c-b716-e3d4-2e16-28056b954d92",
+  "detail-type": "EC2 Automation Execution Status-change Notification",
+  "source": "aws.ssm",
+  "account": "628123596507",
+  "time": "2023-11-09T18:01:13Z",
+  "region": "us-west-2",
+  "resources": [
+    "arn:aws:ssm:us-west-2:628123596507:automation-execution/5220fd0d-eb98-4334-a851-bc7f4d04982a",
+    "arn:aws:ssm:us-west-2:628123596507:automation-definition/AMA-StartStopAuroraClusterWithTags:1"
+  ],
+  "detail": {
+    "ExecutionId": "5220fd0d-eb98-4334-a851-bc7f4d04982a",
+    "Definition": "AMA-StartStopAuroraClusterWithTags",
+    "DefinitionVersion": 1.0,
+    "Status": "Success",
+    "StartTime": "Nov 9, 2023, 6:00:58 PM",
+    "EndTime": "Nov 9, 2023, 6:01:13 PM",
+    "Time": 14212.0,
+    "ExecutedBy": "arn:aws:sts::628123596507:assumed-role/AWSServiceRoleForAmazonSSM/StateManagerService"
+  }
+}
