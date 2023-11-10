@@ -1,12 +1,39 @@
 {
-  "invokingEvent": "{\"configurationItem\":{\"configurationItemCaptureTime\":\"2016-02-17T01:36:34.043Z\",\"awsAccountId\":\"123456789012\",\"configurationItemStatus\":\"OK\",\"resourceId\":\"i-00000000\",\"ARN\":\"arn:aws:ec2:us-east-2:123456789012:instance/i-00000000\",\"awsRegion\":\"us-east-2\",\"availabilityZone\":\"us-east-2a\",\"resourceType\":\"AWS::EC2::Instance\",\"tags\":{\"Foo\":\"Bar\"},\"relationships\":[{\"resourceId\":\"eipalloc-00000000\",\"resourceType\":\"AWS::EC2::EIP\",\"name\":\"Is attached to ElasticIp\"}],\"configuration\":{\"foo\":\"bar\"}},\"messageType\":\"ConfigurationItemChangeNotification\"}",
-  "ruleParameters": "{\"myParameterKey\":\"myParameterValue\"}",
-  "resultToken": "myResultToken",
-  "eventLeftScope": false,
-  "executionRoleArn": "arn:aws:iam::123456789012:role/config-role",
-  "configRuleArn": "arn:aws:config:us-east-2:123456789012:config-rule/config-rule-0123456",
-  "configRuleName": "change-triggered-config-rule",
-  "configRuleId": "config-rule-0123456",
+  "version": "1.0",
+  "invokingEvent": {
+    "configurationItemDiff": null,
+    "configurationItem": {
+      "relatedEvents": [],
+      "relationships": [],
+      "configuration": null,
+      "supplementaryConfiguration": {},
+      "tags": {},
+      "configurationItemVersion": "1.3",
+      "configurationItemCaptureTime": "2023-11-05T16:57:58.644Z",
+      "configurationStateId": 1699203478644,
+      "awsAccountId": "123456789012",
+      "configurationItemStatus": "ResourceDeleted",
+      "resourceType": "AWS::Lambda::Function",
+      "resourceId": "dev-lambda-shared-eni-LambdaComplianceCheck-fETDh0Rh06BU",
+      "resourceName": "dev-lambda-shared-eni-LambdaComplianceCheck-fETDh0Rh06BU",
+      "ARN": "arn:aws:lambda:us-east-1:123456789012:function:dev-lambda-shared-eni-LambdaComplianceCheck-fETDh0Rh06BU",
+      "awsRegion": "us-east-1",
+      "availabilityZone": null,
+      "configurationStateMd5Hash": "",
+      "resourceCreationTime": null,
+      "configurationItemDeliveryTime": null,
+      "recordingFrequency": null
+    },
+    "notificationCreationTime": "2023-11-05T21:27:58.813Z",
+    "messageType": "ConfigurationItemChangeNotification",
+    "recordVersion": "1.3"
+  },
+  "resultToken": "token",
+  "eventLeftScope": true,
+  "executionRoleArn": "arn:aws:iam::123456789012:role/aws-service-role/config.amazonaws.com/AWSServiceRoleForConfig",
+  "configRuleArn": "arn:aws:config:us-east-1:123456789012:config-rule/config-rule-s8jxol",
+  "configRuleName": "lambda-shared-eni-check",
+  "configRuleId": "config-rule-s8jxol",
   "accountId": "123456789012",
-  "version": "1.0"
+  "evaluationMode": "DETECTIVE"
 }

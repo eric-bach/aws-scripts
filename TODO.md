@@ -1,7 +1,7 @@
 #### aws-config-lambda-shared-eni
 
-- Write tests to test rule logic
-- Reach out to CloudOps on how I can deploy AWS Config rules
+- [] Write tests to test rule logic
+- [x] Reach out to CloudOps on how I can deploy AWS Config rules
 - Blog/Presentation
 
 #### aws-ssm-start-stop-cluster

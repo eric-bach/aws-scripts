@@ -22,7 +22,10 @@ def evaluate_compliance(configuration_item):
     security_group_id = configuration_item.get("securityGroupIds", [])[0]
     subnet_ids = configuration_item.get("subnetIds", [])
 
-    # TODO Check that this is a developer lambda
+    # Ignore Lambda functions in the staging or production environment (currently the only consistent way is by resource name since we don't tag consistently)
+    resource_name = configuration_item.get("resourceName", "")
+    if "staging" in resource_name or "prod" in resource_name:
+        return "COMPLIANT"
 
     if security_group_id in SG_SUBNETS and set(subnet_ids).issubset(SG_SUBNETS[security_group_id]) and len(subnet_ids) == 4:
         compliance_status = "COMPLIANT"
