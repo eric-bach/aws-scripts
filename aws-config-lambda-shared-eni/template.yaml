@@ -26,13 +26,6 @@ Resources:
       Role: !GetAtt CheckLambdaSharedEniExecutionRole.Arn
       Policies:
         - AWSLambdaExecute
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - config:PutEvaluations
-                - config:GetComplianceDetailsByConfigRule
-              Resource: '*'
 
   CheckLambdaSharedEniExecutionRole:
     Type: AWS::IAM::Role
@@ -51,11 +44,10 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  [
-                    logs:*,
-                    config:PutEvaluations,
-                    config:GetComplianceDetailsByConfigRule,
-                  ]
+                  - lambda:GetFunctionConfiguration
+                  - logs:*
+                  - config:PutEvaluations
+                  - config:GetComplianceDetailsByConfigRule
                 Resource: '*'
 
   ConfigPermissionToInvokeLambda:
