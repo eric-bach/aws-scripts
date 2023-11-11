@@ -42,19 +42,17 @@ def get_lambda_function_details(function_name):
         return function_details
 
     except lambda_client.exceptions.ResourceNotFoundException as e:
-        print(f"Lambda function '{function_name}' not found. Error: {e}")
+        print(f"❌ Lambda function '{function_name}' not found. Error: {e}")
         return None
     except Exception as e:
-        print(f"Error retrieving Lambda function details. Error: {e}")
+        print(f"❌ Error retrieving Lambda function details. Error: {e}")
         return None
 
 def evaluate_compliance(configuration_item):
-    print(f"Evaluating compliance for: {configuration_item['resourceName']}")
+    resource_name = configuration_item['resourceName']
+    function = get_lambda_function_details(resource_name)
 
-    # Get Lambda function
-    function = get_lambda_function_details(configuration_item['resourceName'])
-
-    # Get Lambda function security group id if exists
+    # Get Security Group Id and Subnet Ids if they exist
     if function is not None:
         security_group_id = function['security_group_ids'][0] if len(function['security_group_ids']) > 0 else None
         subnet_ids = function['subnet_ids'] if len(function['subnet_ids']) > 0 else None
@@ -63,43 +61,33 @@ def evaluate_compliance(configuration_item):
     print(f"Subnet Ids: {subnet_ids}")
 
     if security_group_id is None or subnet_ids is None:
-         print("COMPLIANT - No security group or subnet ids found")
-         return "COMPLIANT"
+        print(f"✅ {resource_name} COMPLIANT - No VPC configuration")
+        return "COMPLIANT"
     
     # Ignore Lambda functions in the staging or production environment (currently the only consistent way is by resource name since we don't tag consistently)
     resource_name = configuration_item.get("resourceName", "")
-    if "staging" in resource_name or "prod" in resource_name:
-        print("COMPLIANT - Not a dev environment")
+    if "staging" in resource_name or "prod" in resource_name or "securityscan" in resource_name:
+        print(f"✅ {resource_name} COMPLIANT - Not a developer environment")
         return "COMPLIANT"
 
     # Check if the Lambda function's subnet IDs and security group match the desired values
     if security_group_id in SG_SUBNETS and set(subnet_ids).issubset(SG_SUBNETS[security_group_id]) and len(subnet_ids) == 2: #4:
-        print("COMPLIANT - Correct network configuration")
+        print(f"✅ {resource_name} COMPLIANT - Valid network configuration")
         compliance_status = "COMPLIANT"
     else:
-        print("COMPLIANT - Incorrect network configuration")
+        print(f"⛔ {resource_name} NOT COMPLIANT - Incorrect network configuration")
         compliance_status = "NON_COMPLIANT"
     
     return compliance_status
 
-# def evaluate_compliance(configuration_item):
-#     # Your custom compliance evaluation logic goes here
-#     # Example: Check if a Lambda function has a specific tag
-#     if "tags" in configuration_item and "application" in configuration_item["tags"]:
-#         compliance_status = "COMPLIANT"
-#     else:
-#         compliance_status = "NON_COMPLIANT"
-    
-#     return compliance_status
-
 def lambda_handler(event, context):
-    print("Event Received:", event)
+    # print(f"Received event: {event}")
 
     invoking_event = json.loads(event['invokingEvent'])
     configuration_item = invoking_event.get('configurationItem')
 
-    print("Configuration Item: ", configuration_item)
-    print("Resource Name: ", configuration_item['resourceName'])
+    print(f"Received configuration change for: ", configuration_item['resourceName'])
+    # print(f"Configuration Item: {json.dumps(configuration_item)}")
 
     compliance_status = evaluate_compliance(configuration_item)
 
@@ -114,16 +102,15 @@ def lambda_handler(event, context):
                 'ComplianceResourceType': configuration_item['resourceType'],
                 'ComplianceResourceId': configuration_item['resourceId'],
                 'ComplianceType': compliance_status,
-                'Annotation': 'Your custom annotation',
+                'Annotation': 'Lambda function is not in the shared Security Group and Subnets configuration',
                 'OrderingTimestamp': current_timestamp
             },
         ],
         ResultToken=event['resultToken']
     )
 
-    print('Config Result: ', result)
-    print('ResourceId: ', configuration_item['resourceId'])
-    print('ComplianceStatus: ', compliance_status)
+    #print(f"Config Result: {result}")
+    print(f"Evaluated Compliance Status: {compliance_status}")
 
     return {
         'statusCode': 200,
