@@ -4,6 +4,9 @@ Description: >
   Stops Amazon Aurora Clusters with a Specific Tag at 6pm MDT (0am UTC) everyday and Starts them at 8am MDT (2pm UTC) on Weekdays.
 
 Parameters:
+  EmailAddress:
+    Type: String
+    Description: The email to send notifications to.
   TagKey:
     Type: String
     Default: env
@@ -67,7 +70,7 @@ Resources:
           - !Ref TagValue
         AutomationAssumeRole:
           - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(0 18 ? * * *) #cron(00 0 * * ? *)
+      ScheduleExpression: cron(00 0 * * ? *)
       Targets:
         - Key: aws:NoOpAutomationTag
           Values:
@@ -89,7 +92,7 @@ Resources:
           - !Ref TagValue
         AutomationAssumeRole:
           - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(0 19 ? * * *) #cron(00 14 ? * ? *)
+      ScheduleExpression: cron(00 14 ? * ? *)
       Targets:
         - Key: aws:NoOpAutomationTag
           Values:
@@ -261,7 +264,7 @@ Resources:
     Type: AWS::SNS::Topic
     Properties:
       Subscription:
-        - Endpoint: eric.bach@ama.ab.ca #!Ref EmailAddress
+        - Endpoint: !Ref EmailAddress
           Protocol: email
       TopicName: event-rule-action
 
