@@ -13,7 +13,7 @@ This creates a AWS State Manager Association that executes a AWS SSM Document to
 2. Deploy the application
 
    ```
-   $ sam deploy --profile AWS_PROFILE
+   $ sam deploy --parameter-overrides EmailAddress=EMAIL_ADDRESS --profile AWS_PROFILE
    ```
 
 3. Edit each of the Start and Stop Associations created in AWS State Manager

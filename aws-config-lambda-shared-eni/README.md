@@ -17,5 +17,5 @@ When a Lambda function is not configured correctly an email message is sent to n
 2. Deploy the application
 
    ```
-   $ sam deploy --profile AWS_PROFILE
+   $ sam deploy --parameter-overrides EmailAddress=EMAIL_ADDRESS --profile AWS_PROFILE
    ```

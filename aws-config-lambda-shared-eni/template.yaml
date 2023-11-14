@@ -126,7 +126,7 @@ Resources:
       Subscription:
         - Endpoint: !Ref EmailAddress
           Protocol: email
-      TopicName: event-rule-action
+      TopicName: aws-config-event-rule-action
 
   SnsTopicPolicyEventRule:
     Type: AWS::SNS::TopicPolicy
