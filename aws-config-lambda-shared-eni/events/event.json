@@ -37,3 +37,39 @@
   "accountId": "123456789012",
   "evaluationMode": "DETECTIVE"
 }
+
+{
+  "version": "0",
+  "id": "74a450e0-9050-bf0d-1160-e7dbb3e3e763",
+  "detail-type": "Config Rules Compliance Change",
+  "source": "aws.config",
+  "account": "123456789012",
+  "time": "2022-03-15T17:33:28Z",
+  "region": "us-east-1",
+  "resources": [],
+  "detail": {
+    "resourceId": "fs-0dcc4daeb657adbd5",
+    "awsRegion": "us-east-1",
+    "awsAccountId": "123456789012",
+    "configRuleName": "efs-resources-protected-by-backup-plan",
+    "recordVersion": "1.0",
+    "configRuleARN": "arn:aws:config:us-east-1:123456789012:config-rule/config-rule-touwmd",
+    "messageType": "ComplianceChangeNotification",
+    "newEvaluationResult": {
+      "evaluationResultIdentifier": {
+        "evaluationResultQualifier": {
+          "configRuleName": "efs-resources-protected-by-backup-plan",
+          "resourceType": "AWS::EFS::FileSystem",
+          "resourceId": "fs-0dcc4daeb657adbd5"
+        },
+        "orderingTimestamp": "2022-03-15T17:32:48.988Z"
+      },
+      "complianceType": "NON_COMPLIANT",
+      "resultRecordedTime": "2022-03-15T17:33:27.770Z",
+      "configRuleInvokedTime": "2022-03-15T17:33:25.449Z",
+      "annotation": "Resource is not protected by any Backup Plan."
+    },
+    "notificationCreationTime": "2022-03-15T17:33:28.758Z",
+    "resourceType": "AWS::EFS::FileSystem"
+  }
+}

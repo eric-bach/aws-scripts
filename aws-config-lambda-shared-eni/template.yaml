@@ -6,7 +6,7 @@ Description: >
 Globals:
   Function:
     Timeout: 10
-    MemorySize: 256
+    MemorySize: 512
 
 Parameters:
   EmailAddress:
@@ -91,6 +91,8 @@ Resources:
           newEvaluationResult:
             complianceType:
               - NON_COMPLIANT
+          resourceType:
+            - AWS::Lambda::Function
 
   FormatEventMessage:
     Type: AWS::Serverless::Function

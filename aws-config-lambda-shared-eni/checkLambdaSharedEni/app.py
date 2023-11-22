@@ -2,22 +2,21 @@ import datetime
 import boto3
 import json
 
-# F1_SG = "sg-0b4baaeedcc5c3dce"
-# M2_SG = "sg-01f3059a533b62208"
-# EXP_SG = "sg-06bc7733c60f6741e"
-# OMN_SG = "sg-06dcd4bc0a4eb5d7c"
-# SUBNET_1 = "subnet-0c97477b31b49f8be"
-# SUBNET_2 = "subnet-0351248ea92ee561e"
-# SUBNET_3 = "subnet-0f3dbaccd2c1fcf36"
-# SUBNET_4 = "subnet-0418853079ef7eb8a"
-# SG_SUBNETS = {
-#     F1_SG: [SUBNET_1, SUBNET_2, SUBNET_3, SUBNET_4],
-#     M2_SG: [SUBNET_1, SUBNET_2, SUBNET_3, SUBNET_4],
-#     EXP_SG: [SUBNET_1, SUBNET_2, SUBNET_3, SUBNET_4],
-#     OMN_SG: [SUBNET_1, SUBNET_2, SUBNET_3, SUBNET_4]
-# }
+F1_SG = "sg-0b4baaeedcc5c3dce"
+M2_SG = "sg-01f3059a533b62208"
+EXP_SG = "sg-06bc7733c60f6741e"
+OMN_SG = "sg-06dcd4bc0a4eb5d7c"
+CEH_SG = "sg-03fc49f78cfcd4de9"
+SUBNET_1 = "subnet-0c97477b31b49f8be"
+SUBNET_2 = "subnet-0351248ea92ee561e"
+SUBNET_3 = "subnet-0f3dbaccd2c1fcf36"
+SUBNET_4 = "subnet-0418853079ef7eb8a"
 SG_SUBNETS = {
-    "sg-40037a17": ["subnet-a4b1bac3", "subnet-78f1e056"]
+    F1_SG: [SUBNET_1, SUBNET_2, SUBNET_3, SUBNET_4],
+    M2_SG: [SUBNET_1, SUBNET_2, SUBNET_3, SUBNET_4],
+    EXP_SG: [SUBNET_1, SUBNET_2],
+    OMN_SG: [SUBNET_1, SUBNET_2],
+    CEH_SG: [SUBNET_1, SUBNET_2],
 }
 
 def get_lambda_function_details(function_name):
@@ -52,6 +51,11 @@ def evaluate_compliance(configuration_item):
     resource_name = configuration_item['resourceName']
     function = get_lambda_function_details(resource_name)
 
+    # Handle the cases when a Lambda function is deleted generates a CloudTrail event
+    if function is None:
+        print(f"{resource_name} not found or may have been deleted")
+        return "COMPLIANT"
+
     # Get Security Group Id and Subnet Ids if they exist
     if function is not None:
         security_group_id = function['security_group_ids'][0] if len(function['security_group_ids']) > 0 else None
@@ -71,7 +75,7 @@ def evaluate_compliance(configuration_item):
         return "COMPLIANT"
 
     # Check if the Lambda function's subnet IDs and security group match the desired values
-    if security_group_id in SG_SUBNETS and set(subnet_ids).issubset(SG_SUBNETS[security_group_id]) and len(subnet_ids) == 2: #4:
+    if security_group_id in SG_SUBNETS and set(subnet_ids).issubset(SG_SUBNETS[security_group_id]) and len(subnet_ids) == len(SG_SUBNETS[security_group_id]):
         print(f"✅ {resource_name} COMPLIANT - Valid network configuration")
         compliance_status = "COMPLIANT"
     else:

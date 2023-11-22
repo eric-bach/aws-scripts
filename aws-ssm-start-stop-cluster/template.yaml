@@ -4,16 +4,16 @@ Description: >
   Stops Amazon Aurora Clusters with a Specific Tag at 6pm MDT (0am UTC) everyday and Starts them at 8am MDT (2pm UTC) on Weekdays.
 
 Parameters:
-  EmailAddress:
-    Type: String
-    Description: The email to send notifications to.
+  # EmailAddress:
+  #   Type: String
+  #   Description: The email to send notifications to.
   TagKey:
     Type: String
-    Default: env
+    Default: environment
     Description: The tag key to filter Aurora DB clusters.
   TagValue:
     Type: String
-    Default: ericbach
+    Default: dev
     Description: The tag value to match for the specified tag key.
 
 Resources:
@@ -70,7 +70,7 @@ Resources:
           - !Ref TagValue
         AutomationAssumeRole:
           - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(0 0 ? * * *) # 6pm MDT (0am UTC) everyday
+      ScheduleExpression: cron(0 1 ? * * *) # 6pm MDT (0am UTC) everyday
       Targets:
         - Key: aws:NoOpAutomationTag
           Values:
@@ -92,7 +92,7 @@ Resources:
           - !Ref TagValue
         AutomationAssumeRole:
           - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(0 14 ? * * *) # 8am MDT (2pm UTC) everyday
+      ScheduleExpression: cron(0 15 ? * * *) # 8am MDT (2pm UTC) everyday
       Targets:
         - Key: aws:NoOpAutomationTag
           Values:
@@ -115,6 +115,7 @@ Resources:
         outputs:
           - StartStopAuroraCluster.ClustersProcessed
           - StartStopAuroraCluster.ClustersStartedOrStopped
+          - StartStopAuroraCluster.ClusterNames
         parameters:
           Action:
             type: String
@@ -183,7 +184,8 @@ Resources:
 
                     out = {
                         "StartStopAuroraCluster.ClustersProcessed": 0,
-                        "StartStopAuroraCluster.ClustersStartedOrStopped": 0
+                        "StartStopAuroraCluster.ClustersStartedOrStopped": 0,
+                        "StartStopAuroraCluster.ClusterNames": ''
                     }
 
                     # Get a list of all Aurora clusters
@@ -220,6 +222,7 @@ Resources:
                                 
                                 start_cluster(cluster_name)
                                 out["StartStopAuroraCluster.ClustersStartedOrStopped"] += 1
+                                out["StartStopAuroraCluster.ClusterNames"] += cluster_name + ", "
 
                             elif action.lower() == STOP.lower():
                                 
@@ -233,6 +236,11 @@ Resources:
                                 
                                 stop_cluster(cluster_name)
                                 out["StartStopAuroraCluster.ClustersStartedOrStopped"] += 1
+                                out["StartStopAuroraCluster.ClusterNames"] += cluster_name + ", "
+                    
+                    # remove last comma
+                    out["StartStopAuroraCluster.ClusterNames"] = out["StartStopAuroraCluster.ClusterNames"][:-2]
+
                     return out
             outputs:
               - Name: ClustersProcessed
@@ -241,43 +249,48 @@ Resources:
               - Name: ClustersStartedOrStopped
                 Selector: $.Payload.ClustersStartedOrStopped
                 Type: Integer
+              - Name: ClusterNames
+                Selector: $.Payload.ClusterNames
+                Type: String
 
-  AssociationEventRule:
-    Type: AWS::Events::Rule
-    Properties:
-      Name: state-manager-association-event-rule
-      Description: A CloudWatch Event Rule that detects changes to AWS State Manager
-      State: ENABLED
-      Targets:
-        - Arn: !Ref SnsTopicEventRule
-          Id: target-id1
-      EventPattern:
-        source:
-          - aws.ssm
-        detail-type:
-          - EC2 Automation Execution Status-change Notification
-        detail:
-          Definition:
-            - AMA-StartStopAuroraClusterWithTags
+  # Ignore sending email notifications for Start/Stop as it doesn't provide much information in the event
 
-  SnsTopicEventRule:
-    Type: AWS::SNS::Topic
-    Properties:
-      Subscription:
-        - Endpoint: !Ref EmailAddress
-          Protocol: email
-      TopicName: aws-ssm-event-rule-action
+  # AssociationEventRule:
+  #   Type: AWS::Events::Rule
+  #   Properties:
+  #     Name: state-manager-association-event-rule
+  #     Description: A CloudWatch Event Rule that detects changes to AWS State Manager
+  #     State: ENABLED
+  #     Targets:
+  #       - Arn: !Ref SnsTopicEventRule
+  #         Id: target-id1
+  #     EventPattern:
+  #       source:
+  #         - aws.ssm
+  #       detail-type:
+  #         - EC2 Automation Execution Status-change Notification
+  #       detail:
+  #         Definition:
+  #           - AMA-StartStopAuroraClusterWithTags
 
-  SnsTopicPolicyEventRule:
-    Type: AWS::SNS::TopicPolicy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Sid: TrustCWEToPublishEventsToMyTopic
-            Effect: Allow
-            Principal:
-              Service: events.amazonaws.com
-            Action: sns:Publish
-            Resource: !Ref SnsTopicEventRule
-      Topics:
-        - !Ref SnsTopicEventRule
+  # SnsTopicEventRule:
+  #   Type: AWS::SNS::Topic
+  #   Properties:
+  #     Subscription:
+  #       - Endpoint: !Ref EmailAddress
+  #         Protocol: email
+  #     TopicName: aws-ssm-event-rule-action
+
+  # SnsTopicPolicyEventRule:
+  #   Type: AWS::SNS::TopicPolicy
+  #   Properties:
+  #     PolicyDocument:
+  #       Statement:
+  #         - Sid: TrustCWEToPublishEventsToMyTopic
+  #           Effect: Allow
+  #           Principal:
+  #             Service: events.amazonaws.com
+  #           Action: sns:Publish
+  #           Resource: !Ref SnsTopicEventRule
+  #     Topics:
+  #       - !Ref SnsTopicEventRule
