@@ -92,7 +92,7 @@ Resources:
           - !Ref TagValue
         AutomationAssumeRole:
           - !GetAtt SsmAutomationRole.Arn
-      ScheduleExpression: cron(0 15 ? * * *) # 8am MDT (2pm UTC) everyday
+      ScheduleExpression: cron(0 14 ? * * *) # 8am MDT (2pm UTC) everyday
       Targets:
         - Key: aws:NoOpAutomationTag
           Values:
